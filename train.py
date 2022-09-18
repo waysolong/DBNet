@@ -19,7 +19,7 @@ from concern.config import Configurable, Config
 
 def main():
     parser = argparse.ArgumentParser(description='Text Recognition Training')
-    parser.add_argument('exp', type=str)
+    parser.add_argument('--exp', type=str, default="experiments/seg_detector/ic15_resnet50_deform_thre.yaml")
     parser.add_argument('--name', type=str)
     parser.add_argument('--batch_size', type=int, help='Batch size for training')
     parser.add_argument('--resume', type=str, help='Resume from checkpoint')
@@ -49,15 +49,18 @@ def main():
     parser.set_defaults(benchmark=True)
 
     args = parser.parse_args()
+    print(args)
+    args.exp = "experiments/seg_detector/ic15_resnet50_deform_thre.yaml"
     args = vars(args)
     args = {k: v for k, v in args.items() if v is not None}
-
+    
     if args['distributed']:
         torch.cuda.set_device(args['local_rank'])
         torch.distributed.init_process_group(backend='nccl', init_method='env://')
 
     conf = Config()
     experiment_args = conf.compile(conf.load(args['exp']))['Experiment']
+    print(experiment_args)
     experiment_args.update(cmd=args)
     experiment = Configurable.construct_class_from_config(experiment_args)
 
